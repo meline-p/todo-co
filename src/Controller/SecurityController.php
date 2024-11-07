@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -25,9 +26,9 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/login_check', name: 'login_check')]
-    public function loginCheck(): void
+    public function loginCheck(): RedirectResponse
     {
-        // This code is never executed.
+        return $this->redirectToRoute('homepage');
     }
 
     #[Route(path: '/logout', name: 'logout')]

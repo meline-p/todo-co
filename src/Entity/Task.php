@@ -20,7 +20,7 @@ class Task
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?bool $isDone = null;
 
     #[ORM\Column]
@@ -28,6 +28,11 @@ class Task
 
     #[ORM\ManyToOne(inversedBy: 'tasks')]
     private ?User $author = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {

@@ -3,9 +3,17 @@
 {% block body %}
     <div class="row">
         {{ form_start(form, {'action' : path('task_edit', { 'id' : task.id })}) }}
-            {{ form_widget(form) }}
+            <div class="my-2">
+                {{ form_row(form.title) }}
+            </div>
+            <div class="my-2">
+                {{ form_row(form.content) }}
+            </div>
+            {# <div class="my-2">
+                {{ form_row(form.author) }}
+            </div> #}
 
-            <button type="submit" class="btn btn-success pull-right">Modifier</button>
+            <button type="submit" class="my-2 btn btn-success pull-right">Modifier</button>
         {{ form_end(form) }}
     </div>
 {% endblock %}
