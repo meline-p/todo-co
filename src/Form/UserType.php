@@ -24,7 +24,7 @@ class UserType extends AbstractType
                     'class' => 'form-control',
                 ],
             ])
-            // ->add('roles')
+            // ->add('roles') choices types
             ->add('password', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'invalid_message' => 'Les deux mots de passe doivent correspondre.',

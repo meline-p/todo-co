@@ -21,6 +21,8 @@ class TaskController extends AbstractController
     #[Route('/tasks/create', name: 'task_create')]
     public function createAction(Request $request, EntityManagerInterface $em)
     {
+        // associer la tâche à l'utilisateur connecté
+
         $task = new Task();
         $form = $this->createForm(TaskType::class, $task);
 
@@ -42,6 +44,8 @@ class TaskController extends AbstractController
     #[Route('/tasks/{id}/edit', name: 'task_edit')]
     public function editAction(Task $task, Request $request, EntityManagerInterface $em)
     {
+        // l'auteur de la tâche ne peut pas être modifié
+
         $form = $this->createForm(TaskType::class, $task);
 
         $form->handleRequest($request);
@@ -74,6 +78,11 @@ class TaskController extends AbstractController
     #[Route('/tasks/{id}/delete', name: 'task_delete')]
     public function deleteTaskAction(Task $task, EntityManagerInterface $em)
     {
+
+        // une tâche ne peut être supprimée que par la persone qui l'a créée
+        // les tâches anonymes peuvent être supprimées seulement par les utilisateurs ave le role admin
+        // utiliser voter pour une seule ligne dans la bdd
+
         $em->remove($task);
         $em->flush();
 

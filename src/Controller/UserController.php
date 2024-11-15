@@ -16,12 +16,17 @@ class UserController extends AbstractController
     #[Route('/users', name: 'user_list')]
     public function listAction(UserRepository $userRepository)
     {
+        // seuls les utilisateurs admin peuvent accéder à la gestion des utilisateurs
+        
         return $this->render('user/list.html.twig', ['users' => $userRepository->findAll()]);
     }
 
     #[Route('/users/create', name: 'user_create')]
     public function createAction(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
     {
+
+        // sélectionner un rôle pour chaque utilisateur (admin/user) -> voter
+
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
 
@@ -48,6 +53,8 @@ class UserController extends AbstractController
     #[Route('/users/{id}/edit', name: 'user_edit')]
     public function editAction(User $user, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
     {
+        // on doit pouvor changer le rôle d'un utilisateur
+
         $form = $this->createForm(UserType::class, $user);
 
         $form->handleRequest($request);
