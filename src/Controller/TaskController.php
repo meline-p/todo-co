@@ -78,10 +78,8 @@ class TaskController extends AbstractController
     #[Route('/tasks/{id}/delete', name: 'task_delete')]
     public function deleteTaskAction(Task $task, EntityManagerInterface $em)
     {
-
-        // une tâche ne peut être supprimée que par la persone qui l'a créée
-        // les tâches anonymes peuvent être supprimées seulement par les utilisateurs ave le role admin
-        // utiliser voter pour une seule ligne dans la bdd
+        //check if the user can delete the task using Voter
+        $this->denyAccessUnlessGranted('TASK_DELETE', $task);
 
         $em->remove($task);
         $em->flush();

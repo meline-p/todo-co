@@ -10,18 +10,26 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class UserController extends AbstractController
 {
     #[Route('/users', name: 'user_list')]
+    #[IsGranted('ROLE_ADMIN')]
     public function listAction(UserRepository $userRepository)
     {
-        // seuls les utilisateurs admin peuvent accéder à la gestion des utilisateurs
+        /**
+         * @var User $user
+         */
+        $user = $this->getUser();
+
+        $user = $userRepository->findOneBy(['username' => $user->getUsername()]);
         
         return $this->render('user/list.html.twig', ['users' => $userRepository->findAll()]);
     }
 
     #[Route('/users/create', name: 'user_create')]
+    #[IsGranted('ROLE_ADMIN')]
     public function createAction(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
     {
 
@@ -51,6 +59,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/{id}/edit', name: 'user_edit')]
+    #[IsGranted('ROLE_ADMIN')]
     public function editAction(User $user, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
     {
         // on doit pouvor changer le rôle d'un utilisateur
