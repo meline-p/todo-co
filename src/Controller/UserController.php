@@ -32,9 +32,6 @@ class UserController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function createAction(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
     {
-
-        // sélectionner un rôle pour chaque utilisateur (admin/user) -> voter
-
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
 
