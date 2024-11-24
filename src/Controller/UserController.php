@@ -24,7 +24,7 @@ class UserController extends AbstractController
         $user = $this->getUser();
 
         $user = $userRepository->findOneBy(['username' => $user->getUsername()]);
-        
+
         return $this->render('user/list.html.twig', ['users' => $userRepository->findAll()]);
     }
 
@@ -33,7 +33,9 @@ class UserController extends AbstractController
     public function createAction(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
     {
         $user = new User();
-        $form = $this->createForm(UserType::class, $user);
+        $form = $this->createForm(UserType::class, $user, [
+            'is_edit' => false,
+        ]);
 
         $form->handleRequest($request);
 
@@ -61,17 +63,13 @@ class UserController extends AbstractController
     {
         // on doit pouvor changer le rôle d'un utilisateur
 
-        $form = $this->createForm(UserType::class, $user);
+        $form = $this->createForm(UserType::class, $user, [
+            'is_edit' => true,
+        ]);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user->setPassword(
-                $passwordHasher->hashPassword(
-                    $user,
-                    $form->get('password')->getData()
-                )
-            );
             $em->persist($user);
             $em->flush();
 

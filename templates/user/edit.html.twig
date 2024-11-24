@@ -5,19 +5,6 @@
 
 {% block body %}
     <div class="row">
-        {{ form_start(form, {'action' : path('user_edit', {'id' : user.id})}) }}
-            
-            <div class="my-2">
-                {{ form_row(form.username) }}
-            </div>
-            <div class="my-2">
-                {{ form_row(form.password) }}
-            </div>
-            <div class="my-2">
-                {{ form_row(form.email) }}
-            </div>
-
-        <button type="submit" class="btn btn-success pull-right">Modifier</button>
-        {{ form_end(form) }}
+        {% include 'user/_form.html.twig' with {'id': user.id, 'path': 'user_edit'} %}
     </div>
 {% endblock %}
