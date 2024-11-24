@@ -7,8 +7,10 @@ use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class TaskController extends AbstractController
 {
@@ -19,12 +21,17 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks/create', name: 'task_create')]
-    public function createAction(Request $request, EntityManagerInterface $em)
+    public function createAction(Request $request, EntityManagerInterface $em, Security $security)
     {
-        // associer la tâche à l'utilisateur connecté
-
         $task = new Task();
-        $form = $this->createForm(TaskType::class, $task);
+
+        $currentUser = $security->getUser();
+        $showAuthor = true;
+
+        $form = $this->createForm(TaskType::class, $task, [
+            'current_user' => $currentUser,
+            'show_author' => $showAuthor,
+        ]);
 
         $form->handleRequest($request);
 
@@ -42,11 +49,15 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}/edit', name: 'task_edit')]
-    public function editAction(Task $task, Request $request, EntityManagerInterface $em)
+    public function editAction(Task $task, Request $request, EntityManagerInterface $em, Security $security)
     {
-        // l'auteur de la tâche ne peut pas être modifié
+        $currentUser = $security->getUser();
+        $showAuthor = ($task->getAuthor() !== null);
 
-        $form = $this->createForm(TaskType::class, $task);
+        $form = $this->createForm(TaskType::class, $task, [
+            'current_user' => $currentUser,
+            'show_author' => $showAuthor,
+        ]);
 
         $form->handleRequest($request);
 
@@ -76,11 +87,9 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}/delete', name: 'task_delete')]
+    #[IsGranted('TASK_DELETE', 'task')]
     public function deleteTaskAction(Task $task, EntityManagerInterface $em)
     {
-        //check if the user can delete the task using Voter
-        $this->denyAccessUnlessGranted('TASK_DELETE', $task);
-
         $em->remove($task);
         $em->flush();
 

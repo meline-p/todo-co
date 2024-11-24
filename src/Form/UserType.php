@@ -17,7 +17,6 @@ class UserType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-
         $builder
             ->add('username', TextType::class, [
                 'label' => "Nom d'utilisateur",
@@ -31,12 +30,21 @@ class UserType extends AbstractType
                 'required' => true,
                 'choices' => [
                     'Utilisateur' => 'ROLE_USER',
-                    'Administrateur' => 'ROLE_ADMIN'
+                    'Administrateur' => 'ROLE_ADMIN',
                 ],
                 'expanded' => true,
                 'multiple' => true,
             ])
-            ->add('password', RepeatedType::class, [
+            ->add('email', EmailType::class, [
+                'label' => 'Adresse email',
+                'required' => true,
+                'attr' => [
+                    'class' => 'form-control',
+                ],
+            ]);
+
+        if (!$options['is_edit']) {
+            $builder->add('password', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'invalid_message' => 'Les deux mots de passe doivent correspondre.',
                 'required' => true,
@@ -76,21 +84,15 @@ class UserType extends AbstractType
                         'class' => 'form-control',
                     ],
                 ],
-            ])
-            ->add('email', EmailType::class, [
-                'label' => 'Adresse email',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                ],
-            ])
-        ;
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'is_edit' => false,
         ]);
     }
 }

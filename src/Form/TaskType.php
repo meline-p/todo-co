@@ -3,6 +3,8 @@
 namespace App\Form;
 
 use App\Entity\Task;
+use App\Entity\User;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -27,20 +29,29 @@ class TaskType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'label' => 'Description',
-            ])
-            // ->add('author', TextType::class, [
-            //     'attr' => [
-            //         'class' => 'form-control',
-            //     ],
-            //     'label' => 'Auteur',
-            // ])
-        ;
+            ]);
+
+        if ($options['show_author'] && $options['current_user']) {
+            $builder->add('author', EntityType::class, [
+            'class' => User::class,
+            'choice_label' => 'username',
+            'disabled' => true,
+            'attr' => [
+                'class' => 'form-control',
+            ],
+            'label' => 'Auteur',
+            'required' => true,
+            'data' => $options['current_user'],
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Task::class,
+            'current_user' => null,
+            'show_author' => true,
         ]);
     }
 }
