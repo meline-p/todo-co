@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block header_title %}<h1>Créer un utilisateur</h1>{% endblock %}
+{% block header_img %}{% endblock %}
+
+{% block body %}
+    <div class="row">
+        {{ form_start(form, {'action' : path('user_create')}) }}
+            
+            <div class="my-2">
+                {{ form_row(form.username) }}
+            </div>
+            <div class="my-2">
+                {{ form_row(form.email) }}
+            </div>
+            <div class="my-2">
+                {{ form_row(form.password) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.roles) }}
+                {% for checkbox in form.roles %}
+                    <div class="form-check">
+                        {{ form_widget(checkbox, {'attr': {'class': 'form-check-input'}}) }}
+                        {{ form_label(checkbox, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-success pull-right mt-2">Ajouter</button>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
