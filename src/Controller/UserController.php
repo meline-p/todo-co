@@ -8,15 +8,16 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class UserController extends AbstractController
 {
-    #[Route('/users', name: 'user_list')]
+    #[Route('/users', name: 'user_list', methods:'GET')]
     #[IsGranted('ROLE_ADMIN')]
-    public function listAction(UserRepository $userRepository)
+    public function list(UserRepository $userRepository): Response
     {
         /**
          * @var User $user
@@ -28,13 +29,14 @@ class UserController extends AbstractController
         return $this->render('user/list.html.twig', ['users' => $userRepository->findAll()]);
     }
 
-    #[Route('/users/create', name: 'user_create')]
+    #[Route('/users/create', name: 'user_create', methods:'POST')]
     #[IsGranted('ROLE_ADMIN')]
-    public function createAction(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
+    public function create(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user, [
             'is_edit' => false,
+            'is_admin' => true
         ]);
 
         $form->handleRequest($request);
@@ -46,6 +48,7 @@ class UserController extends AbstractController
                     $form->get('password')->getData()
                 )
             );
+            $user->setRoles($form->get('roles')->getData());
             $em->persist($user);
             $em->flush();
 
@@ -57,14 +60,15 @@ class UserController extends AbstractController
         return $this->render('user/create.html.twig', ['form' => $form->createView()]);
     }
 
-    #[Route('/users/{id}/edit', name: 'user_edit')]
+    #[Route('/users/{id}/edit', name: 'user_edit', methods:['GET','POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function editAction(User $user, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher)
+    public function edit(User $user, Request $request, EntityManagerInterface $em): Response
     {
         // on doit pouvor changer le rôle d'un utilisateur
 
         $form = $this->createForm(UserType::class, $user, [
             'is_edit' => true,
+            'is_admin' => true
         ]);
 
         $form->handleRequest($request);

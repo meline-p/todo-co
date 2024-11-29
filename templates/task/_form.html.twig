@@ -1,5 +1,9 @@
 
-{{ form_start(form, {'action' : path('task_create')}) }}
+<div class="d-flex">
+    <a href="{{ path('task_list') }}" class="btn bg-light-blue"><i class="fa-solid fa-arrow-left"></i> Retour à la liste des tâches</a>
+</div>
+
+{{ form_start(form, {'action': path(path, task.id is defined ? {'id': task.id} : {})}) }}
     <div class="my-2">
         {{ form_row(form.title) }}
     </div>
@@ -7,17 +11,18 @@
         {{ form_row(form.content) }}
     </div>
 
-    {% if form.author is defined %}
-        <div class="my-2">
-            {{ form_row(form.author) }}
+    {% if task is null %} 
+    {% elseif task.author is not null %} 
+        <div class="alert bg-light-yellow">
+            Auteur : <strong>{{ task.author.username }}</strong>
         </div>
     {% else %}
-        <div class="alert alert-info">
+        <div class="alert bg-light-yellow">
             Auteur : <strong>Anonyme</strong>
         </div>
     {% endif %}
 
-    <button type="submit" class="btn btn-success pull-right my-2">
+    <button type="submit" class="btn bg-green my-2">
         {{ path == 'task_create' ? 'Ajouter' : 'Modifier' }}
     </button>
 {{ form_end(form) }}
