@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    #[Route(path: '/login', name: 'login', methods:["GET", "POST"])]
+    #[Route(path: '/login', name: 'login', methods:["get", "post"])]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         // get the login error if there is one
@@ -30,13 +30,13 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/logout', name: 'logout', methods:'GET')]
+    #[Route(path: '/logout', name: 'logout', methods:'get')]
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
-    #[Route(path: '/sign-up', name: 'sign_up', methods:["GET", "POST"])]
+    #[Route(path: '/sign-up', name: 'sign_up', methods:["get", "post"])]
     public function sign_up(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
