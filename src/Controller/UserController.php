@@ -29,7 +29,7 @@ class UserController extends AbstractController
         return $this->render('user/list.html.twig', ['users' => $userRepository->findAll()]);
     }
 
-    #[Route('/users/create', name: 'user_create', methods:'POST')]
+    #[Route('/users/create', name: 'user_create', methods:['GET','POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function create(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
@@ -52,7 +52,7 @@ class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
 
-            $this->addFlash('success', "L'utilisateur a bien été ajouté.");
+            $this->addFlash('success', sprintf('L\'utilisateur %s a bien été ajouté.', $user->getUsername()));
 
             return $this->redirectToRoute('user_list');
         }
@@ -77,7 +77,7 @@ class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
 
-            $this->addFlash('success', "L'utilisateur a bien été modifié");
+            $this->addFlash('success', sprintf('L\'utilisateur %s a bien été modifié', $user->getUsername()));
 
             return $this->redirectToRoute('user_list');
         }

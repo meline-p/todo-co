@@ -27,15 +27,20 @@
                 {% endif %}">
                 <div class="card-header">
                     <h4>{{ task.title }}</h4>
-                    {% if task.author is not null %}
-                    <small class="card-subtitle text-xs text-muted">Auteur : {{ task.author.username }}</small>
-                    {% endif %}
                 </div>
                 <div>
                     <div class="card-body">
                         <p>{{ task.content }}</p>
                     </div>
+
                     <div class="card-footer d-flex gap-2">
+                    {% if task.author is not null %}
+                    <div>
+                        <small class="btn btn-sm btn-outline-secondary">{{ task.author.username }}</small>
+                    </div>
+                    {% endif %}
+
+                    <div class=" d-flex gap-2 flex-wrap">
                         <form action="{{ path('task_toggle', {'id' : task.id }) }}">
                             {% if task.isDone %}
                             <button class="btn bg-green btn-sm"><i class="fa-solid fa-check"></i></button>
@@ -51,7 +56,7 @@
                                 <button class="btn bg-orange btn-sm"><i class="fa-solid fa-trash"></i></button>
                             </form>
                         {% endif %}
-
+                    </div>
                     </div>
                 </div>
             </div>
