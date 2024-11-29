@@ -1,33 +1,63 @@
 {% extends 'base.html.twig' %}
 
+{% block header_title %}Liste des tâches{% endblock %}
+
 {% block header_img %}<img class="slide-image" src="{{ asset('img/todolist_content.jpg') }}" alt="todo list">{% endblock %}
 
 {% block body %}
-    <a href="{{ path('task_create') }}" class="btn btn-info pull-right">Créer une tâche</a>
+    <div class="d-flex align-items-center gap-2 mb-2">
+        <a href="{{ path('task_create') }}" class="btn bg-light-blue pull-right"><i class="fa-solid fa-plus"></i> Créer une tâche</a>
+        
+        <form method="get" action="{{ path('task_list') }}" class="">
+            <select class="form-select w-auto" name="status" onchange="this.form.submit()">
+                <option value="all" {% if filter == 'all' %}selected{% endif %}>Toutes</option>
+                <option value="in_progress" {% if filter == 'in_progress' %}selected{% endif %}>En cours</option>
+                <option value="is_done" {% if filter == 'is_done' %}selected{% endif %}>Terminées</option>
+            </select>
+        </form>
+    </div>
     <div class="row">
         {% for task in tasks %}
         <div class="col-sm-4 col-lg-4 col-md-4">
-            <div class="thumbnail">
-                <div class="caption">
-                    <h4 class="pull-right">
-                        {% if task.isDone %}<span class="glyphicon glyphicon-ok"></span>{% else %}<span class="glyphicon glyphicon-remove"></span>{% endif %}
-                    </h4>
-                    <h4><a href="{{ path('task_edit', {'id' : task.id }) }}">{{ task.title }}</a></h4>
-                    <p>{{ task.content }}</p>
+            <div class="card gap-2 my-2
+                {% if not task.done %} 
+                    bg-light-yellow
+                {% else %} 
+                    bg-light-green
+                {% endif %}">
+                <div class="card-header">
+                    <h4>{{ task.title }}</h4>
                 </div>
                 <div>
-                    <form action="{{ path('task_toggle', {'id' : task.id }) }}">
-                        <button class="btn btn-success btn-sm pull-right">
-                            {% if not task.isDone %}Marquer comme faite{% else %}Marquer non terminée{% endif %}
-                        </button>
-                    </form>
+                    <div class="card-body">
+                        <p>{{ task.content }}</p>
+                    </div>
 
-                    {% if is_granted('TASK_DELETE', task ) %}
-                        <form action="{{ path('task_delete', {'id' : task.id }) }}">
-                            <button class="btn btn-danger btn-sm pull-right">Supprimer</button>
-                        </form>
+                    <div class="card-footer d-flex gap-2">
+                    {% if task.author is not null %}
+                    <div>
+                        <small class="btn btn-sm btn-outline-secondary">{{ task.author.username }}</small>
+                    </div>
                     {% endif %}
 
+                    <div class=" d-flex gap-2 flex-wrap">
+                        <form action="{{ path('task_toggle', {'id' : task.id }) }}">
+                            {% if task.isDone %}
+                            <button class="btn bg-green btn-sm"><i class="fa-solid fa-check"></i></button>
+                            {% else %}
+                            <button class="btn bg-yellow btn-sm"><i class="fa-solid fa-check"></i></button>
+                            {% endif %}
+                        </form>
+
+                        <a href="{{ path('task_edit', {'id' : task.id }) }}" class="btn bg-dark-blue btn-sm"><i class="fa-solid fa-pen"></i></a>
+
+                        {% if is_granted('TASK_DELETE', task ) %}
+                            <form action="{{ path('task_delete', {'id' : task.id }) }}">
+                                <button class="btn bg-orange btn-sm"><i class="fa-solid fa-trash"></i></button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -24,8 +24,9 @@ class UserType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                 ],
-            ])
-            ->add('roles', ChoiceType::class, [
+            ]);
+        if ($options['is_admin']) {
+            $builder->add('roles', ChoiceType::class, [
                 'label' => 'Rôle',
                 'required' => true,
                 'choices' => [
@@ -34,14 +35,15 @@ class UserType extends AbstractType
                 ],
                 'expanded' => true,
                 'multiple' => true,
-            ])
-            ->add('email', EmailType::class, [
-                'label' => 'Adresse email',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                ],
             ]);
+        }
+        $builder->add('email', EmailType::class, [
+            'label' => 'Adresse email',
+            'required' => true,
+            'attr' => [
+                'class' => 'form-control',
+            ],
+        ]);
 
         if (!$options['is_edit']) {
             $builder->add('password', RepeatedType::class, [
@@ -93,6 +95,7 @@ class UserType extends AbstractType
         $resolver->setDefaults([
             'data_class' => User::class,
             'is_edit' => false,
+            'is_admin' => false
         ]);
     }
 }

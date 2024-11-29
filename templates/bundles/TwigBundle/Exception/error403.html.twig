@@ -1,0 +1,14 @@
+{% extends "base.html.twig" %}
+
+{% block header_img %}<img class="slide-image" src="{{ asset('img/todolist_content.jpg') }}" alt="todo list">{% endblock %}
+
+{% block body %}
+    <div class="text-center">
+        <h1 class="display-1 fw-bold">403</h1>
+        <p class="fs-3"> <span class="text-danger">Opps!</span> Accès non autorisé</p>
+        <p class="lead">
+            Vous ne pouvez pas accéder à cette page
+        </p>
+        <a href="{{path('homepage')}}" class="btn btn-primary">Retour à l'accueil</a>
+    </div>
+{% endblock %}

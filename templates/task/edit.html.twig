@@ -1,8 +1,9 @@
 {% extends 'base.html.twig' %}
 
+{% block header_title %}Modifier : <strong>{{ task.title }}</strong>{% endblock %}
+
 {% block body %}
     <div class="row">
-        {% include 'task/_form.html.twig' with {'id': null, 'path': 'task_edit'} %}
-        <a href="{{ path('task_list') }}" class="btn btn-primary">Retour à la liste des tâches</a>
+        {% include 'task/_form.html.twig' with {'id': task.id, 'path': 'task_edit', 'task': task} %}
     </div>
 {% endblock %}
