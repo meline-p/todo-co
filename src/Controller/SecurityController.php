@@ -37,7 +37,7 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/sign-up', name: 'sign_up', methods:["get", "post"])]
-    public function sign_up(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    public function signUp(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user, [
