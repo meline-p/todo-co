@@ -5,6 +5,8 @@ namespace App\Tests\Entity;
 use PHPUnit\Framework\TestCase;
 use App\Entity\Task;
 use App\Entity\User;
+use DateTime;
+use DateTimeImmutable;
 use Symfony\Component\Validator\Validation;
 
 class TaskTest extends TestCase
@@ -68,6 +70,15 @@ class TaskTest extends TestCase
 
         $task->setAuthor(null);
         $this->assertNull($task->getAuthor());
+    }
+
+    // Created At
+    public function testSetCreatedAt()
+    {
+        $task = new Task();
+        $dateTime = new DateTimeImmutable();
+        $task->setCreatedAt($dateTime);
+        $this->assertSame($dateTime, $task->getCreatedAt());
     }
 
 }
