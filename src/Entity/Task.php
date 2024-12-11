@@ -15,7 +15,8 @@ class Task
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[ORM\Column(length: 255, nullable:false)]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
