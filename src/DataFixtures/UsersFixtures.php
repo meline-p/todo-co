@@ -24,14 +24,14 @@ class UsersFixtures extends Fixture
         $faker = Faker\Factory::create('fr_FR');
 
         $roles = [
-            'user' => ["ROLE_USER"],
-            'admin' => ["ROLE_ADMIN","ROLE_USER"]
+            'user' => ['ROLE_USER'],
+            'admin' => ['ROLE_ADMIN','ROLE_USER']
         ];
 
         $new_user = new User();
         $new_user->setEmail('john@doe.com');
         $new_user->setUsername('johndoe');
-        $new_user->setRoles(["ROLE_USER", "ROLE_ADMIN"]);
+        $new_user->setRoles(['ROLE_USER']);
         $new_user->setPassword(
             $this->passwordEncoder->hashPassword($new_user, 'secret')
         );
@@ -41,15 +41,24 @@ class UsersFixtures extends Fixture
         $new_user = new User();
         $new_user->setEmail('toto@toto.fr');
         $new_user->setUsername('toto');
-        $new_user->setRoles(["ROLE_USER", "ROLE_ADMIN"]);
+        $new_user->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
         $new_user->setPassword(
             $this->passwordEncoder->hashPassword($new_user, 'secret')
         );
         $manager->persist($new_user);
         $this->addReference('usr-2', $new_user);
 
+        $new_user = new User();
+        $new_user->setEmail('test@test.fr');
+        $new_user->setUsername('test');
+        $new_user->setRoles(['ROLE_USER']);
+        $new_user->setPassword(
+            $this->passwordEncoder->hashPassword($new_user, 'secret')
+        );
+        $manager->persist($new_user);
+        $this->addReference('usr-3', $new_user);
 
-        for ($usr = 3; $usr <= 7; $usr++) {
+        for ($usr = 4; $usr <= 8; $usr++) {
             $user = new User();
             $user->setEmail($faker->email);
             $username = explode('@', $faker->email);
