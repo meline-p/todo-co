@@ -27,6 +27,27 @@
                 {% endif %}">
                 <div class="card-header">
                     <h4>{{ task.title }}</h4>
+                    <small>Création : {{ task.createdAt|date('d/m/Y') }}</small>
+                    
+                    {% if task.dueDate %}
+                    <br><small>Date limite : {{ task.dueDate|date('d/m/Y') }}</small>
+                    {% endif %}
+                    
+                    {% if task.priority is not null %}
+                        <br>
+                        <small> Priorité : 
+                            {% if task.priority == "low" %}
+                                <span class="border btn btn-sm bg-light-green">Basse</span>
+                            {% endif %}
+                            {% if task.priority == "medium" %}
+                                <span class="border btn btn-sm bg-light-yellow">Moyenne</span>
+                            {% endif %}
+                            {% if task.priority == "high" %}
+                                <span class="border btn btn-sm bg-orange">Haute</span>
+                            {% endif %}
+                        </small>
+                    {% endif %}
+
                 </div>
                 <div>
                     <div class="card-body">

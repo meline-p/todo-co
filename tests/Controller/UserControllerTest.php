@@ -2,50 +2,67 @@
 
 namespace App\Tests\Controller;
 
+use App\DataFixtures\TasksFixtures;
+use App\DataFixtures\UsersFixtures;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
+use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 class UserControllerTest extends WebTestCase
 {
+    protected ?AbstractDatabaseTool $databaseTool = null;
+    private KernelBrowser|null $client = null;
+    private UserRepository|null $userRepository = null;
+    private User|null $admin = null;
+    private User|null $user = null;
+    private User|null $userTest = null;
+
+    public function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->userRepository = static::getContainer()->get(UserRepository::class);
+
+        $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
+        $this->databaseTool->loadFixtures([
+            UsersFixtures::class,
+            TasksFixtures::class,
+        ]);
+
+        $this->admin = $this->userRepository->findOneByEmail('user@admin.com');
+        $this->user = $this->userRepository->findOneByEmail('user@user.com');
+        $this->userTest = $this->userRepository->findOneByEmail('user@test.com');
+
+        $this->assertNotNull($this->admin, 'Aucun utilisateur avec le rôle ROLE_ADMIN n\'a été trouvé dans la base de données.');
+        $this->assertNotNull($this->user, 'Aucun utilisateur avec le rôle ROLE_USER n\'a été trouvé dans la base de données.');
+        $this->assertNotNull($this->userTest, 'Aucun utilisateur TEST n\'a été trouvé dans la base de données.');
+    }
+
     // /users
     public function testUserListIsAccessibleByAdmin(): void
     {
-        $client = static::createClient();
+        $this->client->loginUser($this->admin);
 
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $adminUser = $userRepository->findOneByEmail('toto@toto.fr');
-
-        $this->assertNotNull($adminUser, 'Aucun utilisateur avec le rôle ROLE_ADMIN n\'a été trouvé dans la base de données.');
-
-        $client->loginUser($adminUser);
-
-        $client->request('GET', '/users');
+        $this->client->request('GET', '/users');
 
         $this->assertResponseIsSuccessful();
     }
 
     public function testUserListIsInaccessibleByNonAdmin(): void
     {
-        $client = static::createClient();
+        $this->client->loginUser($this->user);
 
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $regularUser = $userRepository->findOneByEmail('john@doe.com');
-
-        $this->assertNotNull($regularUser, 'Aucun utilisateur avec le rôle ROLE_USER n\'a été trouvé dans la base de données.');
-
-        $client->loginUser($regularUser);
-
-        $client->request('GET', '/users');
+        $this->client->request('GET', '/users');
 
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testUserListRedirectsForAnonymousUser(): void
     {
-        $client = static::createClient();
-
-        $client->request('GET', '/users');
+        $this->client->request('GET', '/users');
 
         $this->assertResponseRedirects('/login');
     }
@@ -53,15 +70,9 @@ class UserControllerTest extends WebTestCase
     // /users/create
     public function testCreateUserIsAccessibleByAdmin(): void
     {
-        $client = static::createClient();
+        $this->client->loginUser($this->admin);
 
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $adminUser = $userRepository->findOneByEmail('toto@toto.fr');
-        $this->assertNotNull($adminUser, 'Aucun utilisateur avec le rôle ROLE_ADMIN n\'a été trouvé dans la base de données.');
-
-        $client->loginUser($adminUser);
-
-        $crawler = $client->request('GET', '/users/create');
+        $crawler = $this->client->request('GET', '/users/create');
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
         $this->assertSelectorExists('input[name="user[username]"]');
@@ -73,50 +84,35 @@ class UserControllerTest extends WebTestCase
 
         $form = $crawler->selectButton('Ajouter')->form([
             'user[username]' => 'newuser',
-            'user[email]' => 'newuser@example.com',
+            'user[email]' => 'user@new.com',
             'user[password][first]' => 'Password123@',
             'user[password][second]' => 'Password123@',
             'user[roles]' => ['ROLE_USER']
         ]);
 
-        $client->submit($form);
+        $this->client->submit($form);
 
         $entityManager = static::getContainer()->get('doctrine')->getManager();
         $newUser = $entityManager->getRepository(User::class)->findOneBy(['username' => 'newuser']);
         $this->assertNotNull($newUser, 'L\'utilisateur n\'a pas été créé.');
-        $this->assertSame('newuser@example.com', $newUser->getEmail());
+        $this->assertSame('user@new.com', $newUser->getEmail());
         $this->assertSame(['ROLE_USER'], $newUser->getRoles());
     }
 
     public function testCreateUserIsForbiddenForNonAdmin(): void
     {
-        $client = static::createClient();
+        $this->client->loginUser($this->user);
 
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $regularUser = $userRepository->findOneByEmail('john@doe.com');
-        $this->assertNotNull($regularUser, 'Aucun utilisateur avec le rôle ROLE_USER n\'a été trouvé dans la base de données.');
-
-        $client->loginUser($regularUser);
-
-        $client->request('GET', '/users/create');
+        $this->client->request('GET', '/users/create');
         $this->assertResponseStatusCodeSame(403);
     }
 
     // /users/edit
     public function testEditUserByAdmin(): void
     {
-        $client = static::createClient();
+        $this->client->loginUser($this->admin);
 
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $adminUser = $userRepository->findOneByEmail('toto@toto.fr');
-        $this->assertNotNull($adminUser, 'Aucun utilisateur avec le rôle ROLE_ADMIN n\'a été trouvé dans la base de données.');
-
-        $client->loginUser($adminUser);
-
-        $userToEdit = $userRepository->findOneByEmail('test@test.fr');
-        $this->assertNotNull($userToEdit, 'Aucun utilisateur trouvé à éditer.');
-
-        $crawler = $client->request('GET', '/users/' . $userToEdit->getId() . '/edit');
+        $crawler = $this->client->request('GET', '/users/' . $this->userTest->getId() . '/edit');
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
         $this->assertSelectorExists('input[name="user[username]"]');
@@ -126,16 +122,16 @@ class UserControllerTest extends WebTestCase
 
         $form = $crawler->selectButton('Modifier')->form([
             'user[username]' => 'updateduser',
-            'user[email]' => 'updateduser@example.com',
+            'user[email]' => 'user@updated.com',
             'user[roles]' => ['ROLE_USER', 'ROLE_ADMIN']
         ]);
 
-        $client->submit($form);
+        $this->client->submit($form);
 
         $entityManager = static::getContainer()->get('doctrine')->getManager();
         $updatedUser = $entityManager->getRepository(User::class)->findOneBy(['username' => 'updateduser']);
         $this->assertNotNull($updatedUser, 'L\'utilisateur n\'a pas été modifié.');
-        $this->assertSame('updateduser@example.com', $updatedUser->getEmail());
+        $this->assertSame('user@updated.com', $updatedUser->getEmail());
         $this->assertSame(['ROLE_USER', 'ROLE_ADMIN'], $updatedUser->getRoles());
     }
 }

@@ -2,10 +2,13 @@
 
 namespace App\Entity;
 
+use App\Enum\PriorityEnum;
 use App\Repository\TaskRepository;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\Date;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
@@ -30,6 +33,12 @@ class Task
 
     #[ORM\ManyToOne(inversedBy: 'tasks')]
     private ?User $author = null;
+
+    #[ORM\Column(nullable: true, type:'datetime')]
+    private ?DateTime $dueDate = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $priority = null;
 
     public function __construct()
     {
@@ -103,6 +112,29 @@ class Task
     {
         $this->author = $author;
 
+        return $this;
+    }
+
+    public function getDueDate(): ?DateTime
+    {
+        return $this->dueDate;
+    }
+
+    public function setDueDate(?DateTime $dueDate): static
+    {
+        $this->dueDate = $dueDate;
+
+        return $this;
+    }
+
+    public function getPriority(): ?string
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(?string $priority): static
+    {
+        $this->priority = $priority;
         return $this;
     }
 }

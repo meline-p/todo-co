@@ -7,6 +7,7 @@ use App\Entity\Task;
 use App\Entity\User;
 use DateTime;
 use DateTimeImmutable;
+use Symfony\Component\Validator\Constraints\Date;
 use Symfony\Component\Validator\Validation;
 
 class TaskTest extends TestCase
@@ -79,6 +80,24 @@ class TaskTest extends TestCase
         $dateTime = new DateTimeImmutable();
         $task->setCreatedAt($dateTime);
         $this->assertSame($dateTime, $task->getCreatedAt());
+    }
+
+    // Due Date
+    public function testSetDueDate()
+    {
+        $task = new Task();
+        $datetime = new DateTime();
+        $task->setDueDate($datetime);
+        $this->assertSame($datetime, $task->getDueDate());
+    }
+
+    // Priority
+    public function testSetPriority()
+    {
+        $task = new Task();
+        $priority = "high";
+        $task->setPriority($priority);
+        $this->assertSame($priority, $task->getPriority());
     }
 
 }

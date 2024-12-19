@@ -4,8 +4,10 @@ namespace App\Form;
 
 use App\Entity\Task;
 use App\Entity\User;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Enum\PriorityEnum;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -31,6 +33,27 @@ class TaskType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'label' => 'Description',
+            ])
+            ->add('dueDate', DateType::class, [
+                'required' => false,
+                'widget' => 'single_text',
+                'attr' => [
+                    'class' => 'form-control',
+                ],
+                'label' => 'Date limite',
+                'html5' => true,
+            ])
+            ->add('priority', ChoiceType::class, [
+                'choices' => [
+                    'Pas de priorité' => null,
+                    'Basse' => 'low',
+                    'Moyenne' => 'medium',
+                    'Haute' => 'high',
+                ],
+                'label' => 'Priorité',
+                'attr' => [
+                    'class' => 'form-control',
+                ],
             ]);
     }
 

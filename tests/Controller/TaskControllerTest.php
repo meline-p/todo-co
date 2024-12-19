@@ -3,17 +3,45 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Task;
-use App\Entity\User;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use App\DataFixtures\TasksFixtures;
+use App\DataFixtures\UsersFixtures;
+use App\Entity\User;
+use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
+use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 class TaskControllerTest extends WebTestCase
 {
+    protected ?AbstractDatabaseTool $databaseTool = null;
+    private KernelBrowser|null $client = null;
+    private UserRepository|null $userRepository = null;
+    private User|null $admin = null;
+    private User|null $user = null;
+
+    public function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->userRepository = static::getContainer()->get(UserRepository::class);
+
+        $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
+        $this->databaseTool->loadFixtures([
+            UsersFixtures::class,
+            TasksFixtures::class,
+        ]);
+
+        $this->admin = $this->userRepository->findOneByEmail('user@admin.com');
+        $this->user = $this->userRepository->findOneByEmail('user@user.com');
+
+        $this->assertNotNull($this->admin, 'Aucun utilisateur avec le rôle ROLE_ADMIN n\'a été trouvé dans la base de données.');
+        $this->assertNotNull($this->user, 'Aucun utilisateur avec le rôle ROLE_USER n\'a été trouvé dans la base de données.');
+    }
+
     // /tasks
     private function makeRequest(string $filter): Response
     {
@@ -25,24 +53,12 @@ class TaskControllerTest extends WebTestCase
             ->with($criteria)
             ->willReturn([new Task(), new Task()]);
 
-        $client = static::createClient();
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $testUser = $userRepository->findOneByEmail('toto@toto.fr');
+        $this->client->loginUser($this->user);
 
-        $client->loginUser($testUser);
+        $this->client->request('GET', '/tasks?status=' . $filter);
 
-        $client->request('GET', '/tasks?status=' . $filter);
-
-        return $client->getResponse();
+        return $this->client->getResponse();
     }
-
-    // public function testGetTasksWithoutLogin()
-    // {
-    //     $client = static::createClient();
-    //     $client->request('GET', '/tasks');
-
-    //     $this->assertResponseRedirects('/login');
-    // }
 
     public function testListWithoutFilter()
     {
@@ -71,46 +87,38 @@ class TaskControllerTest extends WebTestCase
     // /tasks/create
     public function testCreateTaskWithoutLogin()
     {
-        $client = static::createClient();
-        $client->request('GET', '/tasks/create');
+        $this->client->request('GET', '/tasks/create');
 
         $this->assertResponseRedirects('/login');
     }
 
     public function testCreateTaskFormIsAccessible()
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
-
-        $taskRepository = static::getContainer()->get(TaskRepository::class);
-
-        $client->loginUser($user);
-        $client->request('GET', '/tasks/create');
+        $this->client->loginUser($this->user);
+        $this->client->request('GET', '/tasks/create');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
         $this->assertSelectorExists('input[name="task[title]"]');
         $this->assertSelectorExists('textarea[name="task[content]"]');
+        $this->assertSelectorExists('input[name="task[dueDate]"]');
+        $this->assertSelectorExists('select[name="task[priority]"]');
     }
 
     public function testCreateTaskWithValidData()
     {
-        $client = static::createClient();
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
+        $this->client->loginUser($this->user);
 
-        $client->loginUser($user);
-
-        $client->request('GET', '/tasks/create');
+        $this->client->request('GET', '/tasks/create');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
 
-        $client->submitForm('Ajouter', [
+        $this->client->submitForm('Ajouter', [
             'task[title]' => 'Test Task',
             'task[content]' => 'A description of the task.',
+            'task[dueDate]' => '2024-12-31',
+            'task[priority]' => 3,
         ]);
 
         $this->assertResponseRedirects('/tasks');
@@ -122,22 +130,20 @@ class TaskControllerTest extends WebTestCase
         $this->assertEquals('Test Task', $task->getTitle());
         $this->assertEquals('A description of the task.', $task->getContent());
         $this->assertFalse($task->isDone());
+        $this->assertEquals(new \DateTime('2024-12-31'), $task->getDueDate());
+        $this->assertSame('high', $task->getPriority());
     }
 
     public function testCreateTaskWithInvalidData()
     {
-        $client = static::createClient();
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
+        $this->client->loginUser($this->user);
 
-        $client->loginUser($user);
-
-        $client->request('GET', '/tasks/create');
+        $this->client->request('GET', '/tasks/create');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
 
-        $client->submitForm('Ajouter', [
+        $this->client->submitForm('Ajouter', [
             'task[title]' => '',
             'task[content]' => 'A description of the task.',
         ]);
@@ -148,41 +154,35 @@ class TaskControllerTest extends WebTestCase
     // /tasks/edit
     public function testEditTaskFormIsAccessible()
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
-
         $taskRepository = static::getContainer()->get(TaskRepository::class);
-        $task = $taskRepository->findOneBy(['title' => 'Test Task']);
-        $this->assertNotNull($task, 'La tâche avec le titre "Test Task" n\'existe pas.');
+        $task = $taskRepository->findOneBy(['title' => 'Réserver une salle de réunion']);
+        $this->assertNotNull($task, 'La tâche avec le titre "Réserver une salle de réunion" n\'existe pas.');
 
-        $client->loginUser($user);
-        $client->request('GET', '/tasks/' . $task->getId() . '/edit');
+        $this->client->loginUser($this->user);
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/edit');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
         $this->assertSelectorExists('input[name="task[title]"]');
         $this->assertSelectorExists('textarea[name="task[content]"]');
+        $this->assertSelectorExists('input[name="task[dueDate]"]');
+        $this->assertSelectorExists('select[name="task[priority]"]');
     }
 
     public function testEditTaskWithValidData()
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
-
         $taskRepository = static::getContainer()->get(TaskRepository::class);
-        $task = $taskRepository->findOneBy(['title' => 'Test Task']);
-        $this->assertNotNull($task, 'La tâche avec le titre "Test Task" n\'existe pas.');
+        $task = $taskRepository->findOneBy(['title' => 'Réserver une salle de réunion']);
+        $this->assertNotNull($task, 'La tâche avec le titre "Réserver une salle de réunion" n\'existe pas.');
 
-        $client->loginUser($user);
-        $client->request('GET', '/tasks/' . $task->getId() . '/edit');
+        $this->client->loginUser($this->user);
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/edit');
 
-        $client->submitForm('Modifier', [
+        $this->client->submitForm('Modifier', [
             'task[title]' => 'Updated Task Title',
             'task[content]' => 'Updated task description.',
+            'task[dueDate]' => '2025-03-28',
+            'task[priority]' => 1,
         ]);
 
         $updatedTask = $taskRepository->find($task->getId());
@@ -192,28 +192,23 @@ class TaskControllerTest extends WebTestCase
 
         $this->assertResponseRedirects('/tasks');
 
-        $client->followRedirect();
+        $this->client->followRedirect();
         $this->assertSelectorTextContains('.bg-light-green', 'La tâche Updated Task Title a bien été modifiée.');
     }
 
     public function testEditTaskWithInvalidData()
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
-
         $taskRepository = static::getContainer()->get(TaskRepository::class);
-        $task = $taskRepository->findOneBy(['title' => 'Updated Task Title']);
-        $this->assertNotNull($task, 'La tâche avec le titre "Updated Task Title" n\'existe pas.');
+        $task = $taskRepository->findOneBy(['title' => 'Réserver une salle de réunion']);
+        $this->assertNotNull($task, 'La tâche avec le titre "Réserver une salle de réunion" n\'existe pas.');
 
-        $client->loginUser($user);
-        $client->request('GET', '/tasks/' . $task->getId() . '/edit');
+        $this->client->loginUser($this->user);
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/edit');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('form');
 
-        $client->submitForm('Modifier', [
+        $this->client->submitForm('Modifier', [
             'task[title]' => '',
             'task[content]' => 'Updated task description.',
         ]);
@@ -227,18 +222,13 @@ class TaskControllerTest extends WebTestCase
     // tasks/toggle
     public function testToggleTask()
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
-
         $taskRepository = static::getContainer()->get(TaskRepository::class);
         $em = static::getContainer()->get(EntityManagerInterface::class);
 
         $new_task = new Task();
         $new_task->setTitle('Task 1');
         $new_task->setContent('Task content');
-        $new_task->setAuthor($user);
+        $new_task->setAuthor($this->user);
         $new_task->setIsDone(true);
         $em->persist($new_task);
         $em->flush();
@@ -246,74 +236,71 @@ class TaskControllerTest extends WebTestCase
         $new_task = new Task();
         $new_task->setTitle('Task 2');
         $new_task->setContent('Task content');
-        $new_task->setAuthor($user);
+        $new_task->setAuthor($this->user);
         $new_task->setIsDone(false);
         $em->persist($new_task);
         $em->flush();
 
         // task->isDone(true)
-        $task = $taskRepository->findOneBy(['author' => $user, 'isDone' => true]);
+        $task = $taskRepository->findOneBy(['author' => $this->user, 'isDone' => true]);
         $this->assertNotNull($task, 'La tâche avec le titre "Task 1" n\'existe pas.');
 
-        $client->loginUser($user);
+        $this->client->loginUser($this->user);
 
         $initialStatus = $task->setIsDone(true);
-        $client->request('GET', '/tasks/' . $task->getId() . '/toggle');
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/toggle');
 
         $updatedTask = $taskRepository->find($task->getId());
         $this->assertNotEquals($initialStatus, $updatedTask->isDone());
 
         $this->assertResponseRedirects('/tasks');
 
-        $client->followRedirect();
+        $this->client->followRedirect();
 
         // task->isDone(false)
-        $task = $taskRepository->findOneBy(['author' => $user, 'isDone' => false ]);
+        $task = $taskRepository->findOneBy(['author' => $this->user, 'isDone' => false ]);
         $this->assertNotNull($task, 'La tâche avec le titre "Task 2" n\'existe pas.');
 
         $initialStatus = $task->setIsDone(true);
-        $client->request('GET', '/tasks/' . $task->getId() . '/toggle');
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/toggle');
 
         $updatedTask = $taskRepository->find($task->getId());
         $this->assertNotEquals($initialStatus, $updatedTask->isDone());
 
         $this->assertResponseRedirects('/tasks');
 
-        $client->followRedirect();
+        $this->client->followRedirect();
     }
 
     // tasks/delete
     public function testUserCanDeleteTask(): void
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneByEmail('toto@toto.fr');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $new_task = new Task();
+        $new_task->setTitle('User Task');
+        $new_task->setContent('Task content');
+        $new_task->setAuthor($this->user);
+        $em->persist($new_task);
+        $em->flush();
 
         $taskRepository = static::getContainer()->get(TaskRepository::class);
-        $task = $taskRepository->findOneBy(['author' => $user]);
+        $task = $taskRepository->findOneBy(['author' => $this->user]);
 
         $this->assertNotNull($task, 'La tâche à supprimer n\'a pas été trouvée.');
 
-        $client->loginUser($user);
-        $client->request('GET', '/tasks/' . $task->getId() . '/delete');
+        $this->client->loginUser($this->user);
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/delete');
 
         $this->assertEquals($task->getId(), null);
 
         $this->assertResponseRedirects('/tasks');
 
-        $client->followRedirect();
+        $this->client->followRedirect();
         $this->assertSelectorTextContains('.bg-light-green', 'La tâche a bien été supprimée.');
     }
 
     public function testAdminCanDeleteAnonymousTask(): void
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $admin = $userRepository->findOneByEmail('toto@toto.fr');
-        $this->assertNotNull($admin, 'L\'utilisateur admin n\'a pas été trouvé dans la base de données.');
-
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $new_task = new Task();
         $new_task->setTitle('Anonymous Task');
@@ -327,32 +314,34 @@ class TaskControllerTest extends WebTestCase
 
         $this->assertNotNull($task, 'La tâche à supprimer n\'a pas été trouvée.');
 
-        $client->loginUser($admin);
-        $client->request('GET', '/tasks/' . $task->getId() . '/delete');
+        $this->client->loginUser($this->admin);
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/delete');
 
         $this->assertEquals($task->getId(), null);
 
         $this->assertResponseRedirects('/tasks');
 
-        $client->followRedirect();
+        $this->client->followRedirect();
         $this->assertSelectorTextContains('.bg-light-green', 'La tâche a bien été supprimée.');
     }
 
     public function testUserCannotDeleteTask(): void
     {
-        $client = static::createClient();
-
-        $userRepository = static::getContainer()->get(UserRepository::class);
-        $user1 = $userRepository->findOneByEmail('toto@toto.fr');
-        $user2 = $userRepository->findOneByEmail('john@doe.com');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $new_task = new Task();
+        $new_task->setTitle('User Task');
+        $new_task->setContent('Task content');
+        $new_task->setAuthor($this->admin);
+        $em->persist($new_task);
+        $em->flush();
 
         $taskRepository = static::getContainer()->get(TaskRepository::class);
-        $task = $taskRepository->findOneBy(['author' => $user1]);
+        $task = $taskRepository->findOneBy(['author' => $this->admin]);
 
         $this->assertNotNull($task, 'La tâche à supprimer n\'a pas été trouvée.');
 
-        $client->loginUser($user2);
-        $client->request('GET', '/tasks/' . $task->getId() . '/delete');
+        $this->client->loginUser($this->user);
+        $this->client->request('GET', '/tasks/' . $task->getId() . '/delete');
 
         $this->assertResponseStatusCodeSame(403);
     }

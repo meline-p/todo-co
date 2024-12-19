@@ -29,7 +29,7 @@ class UsersFixtures extends Fixture
         ];
 
         $new_user = new User();
-        $new_user->setEmail('john@doe.com');
+        $new_user->setEmail('user@user.com');
         $new_user->setUsername('johndoe');
         $new_user->setRoles(['ROLE_USER']);
         $new_user->setPassword(
@@ -39,7 +39,7 @@ class UsersFixtures extends Fixture
         $this->addReference('usr-1', $new_user);
 
         $new_user = new User();
-        $new_user->setEmail('toto@toto.fr');
+        $new_user->setEmail('user@admin.com');
         $new_user->setUsername('toto');
         $new_user->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
         $new_user->setPassword(
@@ -49,7 +49,7 @@ class UsersFixtures extends Fixture
         $this->addReference('usr-2', $new_user);
 
         $new_user = new User();
-        $new_user->setEmail('test@test.fr');
+        $new_user->setEmail('user@test.com');
         $new_user->setUsername('test');
         $new_user->setRoles(['ROLE_USER']);
         $new_user->setPassword(
@@ -60,8 +60,8 @@ class UsersFixtures extends Fixture
 
         for ($usr = 4; $usr <= 8; $usr++) {
             $user = new User();
-            $user->setEmail($faker->email);
-            $username = explode('@', $faker->email);
+            $user->setEmail($faker->email());
+            $username = explode('@', $faker->email());
             $user->setUsername($this->slugger->slug($username[0])->lower());
 
             $randomRole = $roles[array_rand($roles)];
