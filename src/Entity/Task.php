@@ -31,7 +31,7 @@ class Task
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'tasks')]
+    #[ORM\ManyToOne(inversedBy: 'tasks', fetch:'EAGER')]
     private ?User $author = null;
 
     #[ORM\Column(nullable: true, type:'datetime')]
