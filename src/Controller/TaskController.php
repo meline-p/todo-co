@@ -6,8 +6,6 @@ use App\Entity\Task;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface;
-use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,22 +17,13 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class TaskController extends AbstractController
 {
-    protected $cacheTags = [];
-    private $cachePool ;
-
-    public function __construct(CacheItemPoolInterface $cachePool)
-    {
-        $this->cachePool = $cachePool;
-    }
-
     #[Route('/tasks', name: 'task_list', methods:["get", "post"])]
-    public function list(Request $request, TaskRepository $taskRepository, PaginatorInterface $paginator, TagAwareCacheInterface $cachePool): Response
+    public function list(Request $request, TaskRepository $taskRepository, TagAwareCacheInterface $cachePool): Response
     {
         $filter = $request->query->get('status', 'all');
-        $page = $request->query->getInt('page', 1);
-        $idCache = 'task_list_' . $filter . '_page_' . $page;
+        $idCache = 'task_list_' . $filter;
 
-        $tasks = $cachePool->get($idCache, function (ItemInterface $item) use ($filter, $taskRepository, $paginator, $request, $idCache) {
+        $tasks = $cachePool->get($idCache, function (ItemInterface $item) use ($filter, $taskRepository, $idCache) {
             $item->expiresAfter(3600);
             $item->tag($idCache);
 
@@ -50,11 +39,7 @@ class TaskController extends AbstractController
                 ->addOrderBy('t.dueDate', 'DESC')
                 ->addOrderBy('t.createdAt', 'DESC');
 
-            return $paginator->paginate(
-                $queryBuilder,
-                $request->query->getInt('page', 1),
-                6
-            );
+            return $queryBuilder->getQuery()->getResult();
         });
 
         return $this->render('task/list.html.twig', [
@@ -63,8 +48,9 @@ class TaskController extends AbstractController
         ]);
     }
 
+
     #[Route('/tasks/create', name: 'task_create', methods:["get", "post"])]
-    public function create(Request $request, EntityManagerInterface $em, Security $security): Response
+    public function create(Request $request, EntityManagerInterface $em, Security $security, TagAwareCacheInterface $cachePool): Response
     {
         $task = new Task();
         $currentUser = $security->getUser();
@@ -83,7 +69,7 @@ class TaskController extends AbstractController
 
             $this->addFlash('success', sprintf('La tâche %s a été bien été ajoutée.', $task->getTitle()));
 
-            $this->cachePool->clear();
+            $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
 
             return $this->redirectToRoute('task_list');
         }
@@ -92,7 +78,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}/edit', name: 'task_edit', methods:["get", "post"])]
-    public function edit(Task $task, Request $request, EntityManagerInterface $em): Response
+    public function edit(Task $task, Request $request, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): Response
     {
         $form = $this->createForm(TaskType::class, $task);
 
@@ -103,7 +89,7 @@ class TaskController extends AbstractController
 
             $this->addFlash('success', sprintf('La tâche %s a bien été modifiée.', $task->getTitle()));
 
-            $this->cachePool->clear();
+            $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
 
             return $this->redirectToRoute('task_list');
         }
@@ -115,7 +101,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}/toggle', name: 'task_toggle', methods:'get')]
-    public function toggle(Task $task,EntityManagerInterface $em): Response
+    public function toggle(Task $task,EntityManagerInterface $em, TagAwareCacheInterface $cachePool): Response
     {
         $task->toggle(!$task->isDone());
         $em->flush();
@@ -126,21 +112,21 @@ class TaskController extends AbstractController
             $this->addFlash('success', sprintf('La tâche %s a été marquée avec succès comme en cours.', $task->getTitle()));
         }
 
-        $this->cachePool->clear();
+        $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
 
         return $this->redirectToRoute('task_list');
     }
 
     #[Route('/tasks/{id}/delete', name: 'task_delete', methods:"get")]
     #[IsGranted('TASK_DELETE', 'task')]
-    public function delete(Task $task, EntityManagerInterface $em): Response
+    public function delete(Task $task, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): Response
     {
         $em->remove($task);
         $em->flush();
 
         $this->addFlash('success', 'La tâche a bien été supprimée.');
 
-        $this->cachePool->clear();
+        $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
 
         return $this->redirectToRoute('task_list');
     }
