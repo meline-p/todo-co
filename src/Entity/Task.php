@@ -20,7 +20,7 @@ class Task
     #[ORM\Column(length: 255, nullable:false)]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable:true)]
     private ?string $content = null;
 
     #[ORM\Column(nullable: true)]

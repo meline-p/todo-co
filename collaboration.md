@@ -245,3 +245,4 @@ Créer un fichier de configuration .php-cs-fixer.php et le personaliser.
     ```
 
     Cela générera un rapport de couverture des tests dans le dossier public/coverage. Toute PR présentant une couverture de code inférieure à 70 % sera rejetée.
+    
