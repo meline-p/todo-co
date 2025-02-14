@@ -5,9 +5,9 @@ Ce document a pour objectif de définir les bonnes pratiques pour contribuer au 
 
 ## Sommaire
 - [Processus de Qualité](#processus-de-qualité)
-- [Collaboration avec Git](#collaboration_avec_git)
-- [Intégration avec SymfonyInsight](#intégration_avec_symfonyinsight)
-- [Respect des Normes PSR](#respect_des_normes_psr)
+- [Collaboration avec Git](#collaboration-avec-git)
+- [Intégration avec SymfonyInsight](#intégration-avec-symfonyinsight)
+- [Respect des Normes PSR](#respect-des-normes-psr)
 - [Tests Unitaires et Tests d'intégration](#tests-unitaires-et-tests-dintégration)
 
 
