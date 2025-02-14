@@ -11,9 +11,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`', indexes: [new ORM\Index(name: "idx_username", columns: ["username"])])]
+#[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
+#[ORM\Index(columns: ['username'], name: 'username_idx')]
 #[UniqueEntity(fields: ['username'], message: 'Un compte avec ce pseudo existe déjà.')]
 #[UniqueEntity(fields: ['email'], message: 'Un compte avec cette adresse mail existe déjà.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface

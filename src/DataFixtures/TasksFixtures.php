@@ -7,13 +7,22 @@ use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class TasksFixtures extends Fixture implements DependentFixtureInterface
 {
     private $counter = 1;
+    private $cachePool;
+
+    public function __construct(TagAwareCacheInterface $cachePool)
+    {
+        $this->cachePool = $cachePool;
+    }
 
     public function load(ObjectManager $manager): void
     {
+        $this->cachePool->invalidateTags(['task_list']);
+
         $this->createTask(
             "Finaliser le rapport d'audit",
             "Compléter la section sur la dette technique et relire le document avant soumission.",

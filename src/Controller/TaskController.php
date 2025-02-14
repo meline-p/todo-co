@@ -25,7 +25,7 @@ class TaskController extends AbstractController
 
         $tasks = $cachePool->get($idCache, function (ItemInterface $item) use ($filter, $taskRepository, $idCache) {
             $item->expiresAfter(3600);
-            $item->tag($idCache);
+            $item->tag('task_list');
 
             $queryBuilder = $taskRepository->createQueryBuilder('t');
 
@@ -69,7 +69,7 @@ class TaskController extends AbstractController
 
             $this->addFlash('success', sprintf('La tâche %s a été bien été ajoutée.', $task->getTitle()));
 
-            $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
+            $cachePool->invalidateTags(['task_list']);
 
             return $this->redirectToRoute('task_list');
         }
@@ -89,7 +89,7 @@ class TaskController extends AbstractController
 
             $this->addFlash('success', sprintf('La tâche %s a bien été modifiée.', $task->getTitle()));
 
-            $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
+            $cachePool->invalidateTags(['task_list']);
 
             return $this->redirectToRoute('task_list');
         }
@@ -112,7 +112,7 @@ class TaskController extends AbstractController
             $this->addFlash('success', sprintf('La tâche %s a été marquée avec succès comme en cours.', $task->getTitle()));
         }
 
-        $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
+        $cachePool->invalidateTags(['task_list']);
 
         return $this->redirectToRoute('task_list');
     }
@@ -126,7 +126,7 @@ class TaskController extends AbstractController
 
         $this->addFlash('success', 'La tâche a bien été supprimée.');
 
-        $cachePool->invalidateTags(['task_list_all', 'task_list_is_done', 'task_list_in_progress']);
+        $cachePool->invalidateTags(['task_list']);
 
         return $this->redirectToRoute('task_list');
     }

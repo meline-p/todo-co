@@ -8,19 +8,25 @@ use Doctrine\Persistence\ObjectManager;
 use Faker;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class UsersFixtures extends Fixture
 {
     private $counter = 1;
+    private $cachePool;
 
     public function __construct(
         private UserPasswordHasherInterface $passwordEncoder,
-        private SluggerInterface $slugger
+        private SluggerInterface $slugger,
+        TagAwareCacheInterface $cachePool
     ) {
+        $this->cachePool = $cachePool;
     }
 
     public function load(ObjectManager $manager): void
     {
+        $this->cachePool->invalidateTags(['user_list']);
+
         $faker = Faker\Factory::create('fr_FR');
 
         $roles = [

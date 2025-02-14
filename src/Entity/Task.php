@@ -2,13 +2,11 @@
 
 namespace App\Entity;
 
-use App\Enum\PriorityEnum;
 use App\Repository\TaskRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\Date;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
@@ -31,14 +29,14 @@ class Task
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'tasks', fetch:'EAGER')]
-    private ?User $author = null;
-
     #[ORM\Column(nullable: true, type:'datetime')]
     private ?DateTime $dueDate = null;
 
     #[ORM\Column(nullable: true)]
     private ?string $priority = null;
+
+    #[ORM\ManyToOne(inversedBy: 'tasks', fetch:'EAGER')]
+    private ?User $author = null;
 
     public function __construct()
     {
@@ -103,18 +101,6 @@ class Task
         return $this;
     }
 
-    public function getAuthor(): ?User
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(?User $author): static
-    {
-        $this->author = $author;
-
-        return $this;
-    }
-
     public function getDueDate(): ?DateTime
     {
         return $this->dueDate;
@@ -135,6 +121,18 @@ class Task
     public function setPriority(?string $priority): static
     {
         $this->priority = $priority;
+        return $this;
+    }
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): static
+    {
+        $this->author = $author;
+
         return $this;
     }
 }

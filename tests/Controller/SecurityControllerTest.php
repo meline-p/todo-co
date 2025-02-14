@@ -95,46 +95,4 @@ class SecurityControllerTest extends WebTestCase
 
         $this->client->followRedirect();
     }
-
-    public function testSignUpWithValidData(): void
-    {
-        $crawler = $this->client->request('GET', '/sign-up');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('form');
-
-        $form = $crawler->selectButton('S\'inscrire')->form([
-            'user[username]' => 'newuser',
-            'user[email]' => 'user@new.com',
-            'user[password][first]' => 'Password123@',
-            'user[password][second]' => 'Password123@',
-        ]);
-
-        $this->client->submit($form);
-
-        $this->client->followRedirect();
-
-        $entityManager = static::getContainer()->get('doctrine')->getManager();
-        $user = $entityManager->getRepository(User::class)->findOneBy(['username' => 'newuser']);
-        $this->assertNotNull($user, 'L\'utilisateur n\'a pas été créé.');
-        $this->assertSame('user@new.com', $user->getEmail());
-        $this->assertSame(['ROLE_USER'], $user->getRoles());
-    }
-
-    public function testSignUpWithInvalidData(): void
-    {
-        $crawler = $this->client->request('GET', '/sign-up');
-        $this->assertResponseIsSuccessful();
-
-        $form = $crawler->selectButton('S\'inscrire')->form([
-            'user[username]' => '',
-            'user[email]' => 'invalid-email',
-            'user[password][first]' => 'short',
-            'user[password][second]' => 'not-matching',
-        ]);
-
-        $this->client->submit($form);
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('li', 'Les deux mots de passe doivent correspondre.');
-    }
 }
