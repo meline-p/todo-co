@@ -4,6 +4,9 @@
 </div>
 
 {{ form_start(form, {'action': path(path, task.id is defined ? {'id': task.id} : {})}) }}
+    {# {% for error in form.title.vars.errors %}
+        <div class="form-error">{{ error.message }}</div>
+    {% endfor %} #}
     <div class="my-2">
         {{ form_row(form.title) }}
     </div>
@@ -21,6 +24,14 @@
             Auteur : <strong>Anonyme</strong>
         </div>
     {% endif %}
+
+    <div class="my-2">
+        {{ form_row(form.dueDate) }}
+    </div>
+
+    <div class="my-2">
+        {{ form_row(form.priority) }}
+    </div>
 
     <button type="submit" class="btn bg-green my-2">
         {{ path == 'task_create' ? 'Ajouter' : 'Modifier' }}

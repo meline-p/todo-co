@@ -14,6 +14,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
+#[ORM\Index(columns: ['username'], name: 'username_idx')]
 #[UniqueEntity(fields: ['username'], message: 'Un compte avec ce pseudo existe déjà.')]
 #[UniqueEntity(fields: ['email'], message: 'Un compte avec cette adresse mail existe déjà.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -44,7 +45,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Task>
      */
-    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'author')]
+    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'author', fetch:'LAZY')]
     private Collection $tasks;
 
     public function __construct()

@@ -20,25 +20,47 @@
         {% for task in tasks %}
         <div class="col-sm-4 col-lg-4 col-md-4">
             <div class="card gap-2 my-2
-                {% if not task.done %} 
+                {% if task.isDone %}
+                    bg-light-green  
+                {% elseif task.dueDate is not null and task.dueDate|date('Y/m/d') < 'now'|date('Y/m/d') %}
+                    bg-light-orange
+                {% else %}
                     bg-light-yellow
-                {% else %} 
-                    bg-light-green
                 {% endif %}">
                 <div class="card-header">
-                    <h4>{{ task.title }}</h4>
+                    <h4>
+                    {% if task.priority is not null %}
+                        <span class="text-danger">
+                            {% if task.priority == "low" %}!{% endif %}
+                            {% if task.priority == "medium" %}!!{% endif %}
+                            {% if task.priority == "high" %}!!!{% endif %}
+                        {{ task.title }}
+                        </span>
+                    {% else %}
+                        {{ task.title }}
+                    {% endif %}
+                    
+                    </h4>
+                    {% if task.dueDate is not null %}
+                    <small><strong>pour le {{ task.dueDate|date('d/m/Y') }}</strong></small>
+                    {% endif %}
+
                 </div>
                 <div>
                     <div class="card-body">
                         <p>{{ task.content }}</p>
                     </div>
 
-                    <div class="card-footer d-flex gap-2">
-                    {% if task.author is not null %}
-                    <div>
-                        <small class="btn btn-sm btn-outline-secondary">{{ task.author.username }}</small>
+                    <div class="card-footer">
+                   
+                    <div class="pb-2">
+                        <small>
+                        {% if task.author is not null %}
+                            {{ task.author.username }} | 
+                        {% endif %}
+                        création le {{ task.createdAt|date('d/m/Y') }}</small>
                     </div>
-                    {% endif %}
+                 
 
                     <div class=" d-flex gap-2 flex-wrap">
                         <form action="{{ path('task_toggle', {'id' : task.id }) }}">

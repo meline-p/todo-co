@@ -12,26 +12,31 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class UserController extends AbstractController
 {
-    #[Route('/users', name: 'user_list', methods:'GET')]
+    #[Route('/users', name: 'user_list', methods:'get')]
     #[IsGranted('ROLE_ADMIN')]
-    public function list(UserRepository $userRepository): Response
+    public function list(UserRepository $userRepository,  TagAwareCacheInterface $cachePool): Response
     {
-        /**
-         * @var User $user
-         */
-        $user = $this->getUser();
+        $idCache = 'user_list';
 
-        $user = $userRepository->findOneBy(['username' => $user->getUsername()]);
+        $users = $cachePool->get($idCache, function (ItemInterface $item) use ($userRepository, $idCache) {
+            $item->expiresAfter(3600);
+            $item->tag($idCache);
+            return $userRepository->findAll();
+        });
 
-        return $this->render('user/list.html.twig', ['users' => $userRepository->findAll()]);
+        return $this->render('user/list.html.twig', [
+            'users' =>$users
+        ]);
     }
 
-    #[Route('/users/create', name: 'user_create', methods:['GET','POST'])]
+    #[Route('/users/create', name: 'user_create', methods:['get','post'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function create(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    public function create(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher, TagAwareCacheInterface $cachePool): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user, [
@@ -54,18 +59,18 @@ class UserController extends AbstractController
 
             $this->addFlash('success', sprintf('L\'utilisateur %s a bien été ajouté.', $user->getUsername()));
 
+            $cachePool->invalidateTags(['user_list']);
+
             return $this->redirectToRoute('user_list');
         }
 
         return $this->render('user/create.html.twig', ['form' => $form->createView()]);
     }
 
-    #[Route('/users/{id}/edit', name: 'user_edit', methods:['GET','POST'])]
+    #[Route('/users/{id}/edit', name: 'user_edit', methods:['get','post'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(User $user, Request $request, EntityManagerInterface $em): Response
+    public function edit(User $user, Request $request, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): Response
     {
-        // on doit pouvor changer le rôle d'un utilisateur
-
         $form = $this->createForm(UserType::class, $user, [
             'is_edit' => true,
             'is_admin' => true
@@ -78,6 +83,8 @@ class UserController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', sprintf('L\'utilisateur %s a bien été modifié', $user->getUsername()));
+
+            $cachePool->invalidateTags(['user_list']);
 
             return $this->redirectToRoute('user_list');
         }

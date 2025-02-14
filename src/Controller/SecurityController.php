@@ -6,7 +6,6 @@ use App\Entity\User;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -15,7 +14,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    #[Route(path: '/login', name: 'login', methods:["GET", "POST"])]
+    #[Route(path: '/login', name: 'login', methods:["get", "post"])]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         // get the login error if there is one
@@ -30,39 +29,9 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/logout', name: 'logout', methods:'GET')]
+    #[Route(path: '/logout', name: 'logout', methods:'get')]
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
-    }
-
-    #[Route(path: '/sign-up', name: 'sign_up', methods:["GET", "POST"])]
-    public function sign_up(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
-    {
-        $user = new User();
-        $form = $this->createForm(UserType::class, $user, [
-            'is_edit' => false,
-            'is_admin' => false
-        ]);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $user->setPassword(
-                $passwordHasher->hashPassword(
-                    $user,
-                    $form->get('password')->getData()
-                )
-            );
-            $user->setRoles(['ROLE_USER']);
-            $em->persist($user);
-            $em->flush();
-
-            $this->addFlash('success', "Votre compte est créé.");
-
-            return $this->redirectToRoute('task_list');
-        }
-
-        return $this->render('security/sign_up.html.twig', ['form' => $form->createView()]);
     }
 }

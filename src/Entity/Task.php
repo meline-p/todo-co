@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\TaskRepository;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
@@ -14,10 +16,11 @@ class Task
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[ORM\Column(length: 255, nullable:false)]
     private ?string $title = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable:true)]
     private ?string $content = null;
 
     #[ORM\Column(nullable: true)]
@@ -26,7 +29,13 @@ class Task
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'tasks')]
+    #[ORM\Column(nullable: true, type:'datetime')]
+    private ?DateTime $dueDate = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $priority = null;
+
+    #[ORM\ManyToOne(inversedBy: 'tasks', fetch:'EAGER')]
     private ?User $author = null;
 
     public function __construct()
@@ -68,14 +77,14 @@ class Task
         return $this->isDone;
     }
 
-    public function setIsDone(string $isDone): static
+    public function setIsDone(?bool $isDone): static
     {
         $this->isDone = $isDone;
 
         return $this;
     }
 
-    public function toggle($flag): void
+    public function toggle(?bool $flag): void
     {
         $this->isDone = $flag;
     }
@@ -89,6 +98,29 @@ class Task
     {
         $this->createdAt = $createdAt;
 
+        return $this;
+    }
+
+    public function getDueDate(): ?DateTime
+    {
+        return $this->dueDate;
+    }
+
+    public function setDueDate(?DateTime $dueDate): static
+    {
+        $this->dueDate = $dueDate;
+
+        return $this;
+    }
+
+    public function getPriority(): ?string
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(?string $priority): static
+    {
+        $this->priority = $priority;
         return $this;
     }
 

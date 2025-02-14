@@ -6,6 +6,7 @@ framework:
         # The "app" cache stores to the filesystem by default.
         # The data in this cache should persist between deploys.
         # Other options include:
+        app: cache.adapter.filesystem
 
         # Redis
         #app: cache.adapter.redis
@@ -15,5 +16,8 @@ framework:
         #app: cache.adapter.apcu
 
         # Namespaced pools use the above "app" backend by default
-        #pools:
+        pools:
+            task_cache:
+                adapter: cache.adapter.filesystem
+                default_lifetime: 3600
             #my.dedicated.cache: null
