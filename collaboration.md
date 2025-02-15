@@ -1,4 +1,4 @@
-# Guide de Collaboration et Qualité pour le Projet To Do & Co
+# Guide de Collaboration et Qualité pour le Projet ToDo & Co
 
 ## Introduction
 Ce document a pour objectif de définir les bonnes pratiques pour contribuer au projet, en détaillant les processus de collaboration, les outils à utiliser, ainsi que les normes de qualité à respecter.

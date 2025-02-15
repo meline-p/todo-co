@@ -1,4 +1,4 @@
-To Do & Co
+ToDo & Co
 ========
 
 ## Description
@@ -20,7 +20,7 @@ ToDo & Co is a startup that offers a daily task management application.
 
 1. Clone the repository:
     ```bash
-    git clone git clone https://github.com/meline-p/todo-co.git
+    git clone https://github.com/meline-p/todo-co.git
     cd todo-co
     ```
 
@@ -36,7 +36,7 @@ ToDo & Co is a startup that offers a daily task management application.
 
 4. Configure the test environment by copying the .env.test file:
     ```bash
-    cp .env .env.test.local
+    cp .env.test .env.test.local
     ```
 
 ## Configuration
