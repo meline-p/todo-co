@@ -3,7 +3,7 @@ To Do & Co
 
 ## Description
 
-ToDo & Co helps you organize your work and keep track of your tasks.
+ToDo & Co is a startup that offers a daily task management application.
 
 ## Sommaire
 
