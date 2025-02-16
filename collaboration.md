@@ -8,18 +8,18 @@ Ce document a pour objectif de définir les bonnes pratiques pour contribuer au 
 - [Collaboration avec Git](#collaboration-avec-git)
 - [Intégration avec SymfonyInsight](#intégration-avec-symfonyinsight)
 - [Respect des Normes PSR](#respect-des-normes-psr)
-- [Tests Unitaires et Tests d'intégration](#tests-unitaires-et-tests-dintégration)
+- [Tests Unitaires et Tests Fonctionnels](#tests-unitaires-et-tests-fonctionnels)
 
 
 ## Processus de Qualité
 
 1. **Tests Unitaires**
 
-    Avant toute Pull Request, assurez-vous que des [tests unitaires](#tests-unitaires-et-tests-dintégration) sont ajoutés pour les nouvelles fonctionnalités ou corrections.
+    Avant toute Pull Request, assurez-vous que des [tests unitaires](#tests-unitaires-et-tests-fonctionnels) sont ajoutés pour les nouvelles fonctionnalités ou corrections.
 
-2. **Tests d'Intégration**
+2. **Tests fonctionnels**
 
-    Les [tests d'intégration](#tests-unitaires-et-tests-dintégration) doivent être exécutés pour vérifier le bon fonctionnement du système dans son ensemble.
+    Les [tests fonctionnels](#tests-unitaires-et-tests-fonctionnels) doivent être exécutés pour vérifier le bon fonctionnement du système dans son ensemble.
 
 3. **Revue de Code**
 
@@ -48,7 +48,7 @@ Ce document a pour objectif de définir les bonnes pratiques pour contribuer au 
 
 3. **Travail sur votre Branche**
 
-    Vous devez toujours travailler sur votre propre branche et ne jamais pousser directement sur la branche `master`. Assurez-vous que vos changements sont isolés dans la branche spécifique à la fonctionnalité ou au bug que vous traitez. Assurez-vous de tester votre code avec des [tests unitaires et des tests d'intégration](#tests-unitaires-et-tests-dintégration)
+    Vous devez toujours travailler sur votre propre branche et ne jamais pousser directement sur la branche `master`. Assurez-vous que vos changements sont isolés dans la branche spécifique à la fonctionnalité ou au bug que vous traitez. Assurez-vous de tester votre code avec des [tests unitaires et des tests fonctionnels](#tests-unitaires-et-tests-fonctionnels)
 
 4. **Ajouter les Fichiers Modifiés**
 
@@ -86,7 +86,7 @@ Ce document a pour objectif de définir les bonnes pratiques pour contribuer au 
 
     SymfonyInsight est utilisé pour analyser la [qualité du code](#respect-des-normes-psr).
 
-2. **Fixer les Problèmes de Qualité**
+2. **Corriger les Problèmes de Qualité**
 
     Si des problèmes sont signalés par SymfonyInsight, corrigez-les avant de soumettre vos modifications. Cela peut inclure des problèmes de sécurité, des erreurs de syntaxe ou des violations des bonnes pratiques.
 
@@ -202,14 +202,14 @@ Créer un fichier de configuration .php-cs-fixer.php et le personaliser.
     - Type-hinting : Utilisez des déclarations de types pour les arguments et les valeurs de retour des fonctions (exemple : `string` et `: void`).
 
 
-## Tests Unitaires et Tests d'intégration
+## Tests Unitaires et Tests Fonctionnels
 
 ### Tests Unitaires: 
 
 - Idéaux pour tester la logique métier de manière exhaustive. (se concentrent uniquement sur des méthodes isolées, comme la validation d'une tâche ou une méthode logique dans un service)
 - Doivent couvrir la majorité des scénarios possibles au niveau des fonctions ou méthodes.
 
-### Tests d'Intégration : 
+### Tests Fonctionnels : 
 
 - Complètent les tests unitaires en vérifiant que l'application fonctionne bien dans un environnement proche de la réalité.
 - Essentiels pour tester des workflows complets et des fonctionnalités critiques. (Le système d'authentification, les contrôleurs Symfony, les réponses HTTP, les données de test (fixtures), les formulaires et les réponses HTML)
