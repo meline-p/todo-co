@@ -37,7 +37,8 @@ class AdminVoter extends Voter
         $task = $subject;
 
         // the author of the task can delete it
-        if ($task->getAuthor() === $user) {
+        /** @var User $user */
+        if ($task->getAuthor()?->getId() === $user->getId()) {
             return true;
         }
 
